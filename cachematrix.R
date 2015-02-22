@@ -1,39 +1,46 @@
-## TODO class comments
+# A series of functions to perform an inverse of a matrix and cache the matrix and the inverse, 
+# so that future inverse calculations need not be performed unless the original matrix changes.
+# 
+# Example functions from the homework assignment, with explanations gleaned from forum.
 #
-# Single-letter variable and function names aren't good form.  They are easily forgotten and mixed up
+# Test functions gleaned from forum to test matrix inversion and caching.
+#
+# Note: Single-letter variable and function names aren't good form.  They are easily forgotten and mixed up
 # and are difficult to maintain after the program is written.  Since I used the example code for reference, 
 # it may be useful to include a little translation table between the variables used in the example code, and 
 # the variable names I use.
-# Example Code:                   My Code:
-# m (stood for mean)              calculated_inverse
-# mean (new mean to set m to)     new_inverse
-# x (stood for vector)
-# y (stood for new vector)
-# setmean                         setCalculatedInverse
-# getmean                         getCalculatedInverse
+# Example Code:                                 My Code:
+# m (stood for mean)                            calculated_inverse
+# mean (new mean to set m to)                   new_inverse
+# x (stood for vector inside makeVector)        matrix_to_cache (inside makeCacheMatrix) 
+# x (stood for vector inside cachemean)         matrix_to_invert (inside cacheSolve) 
+# y (stood for new vector)                      new_matrix
+# setmean                                       setCalculatedInverse
+# getmean                                       getCalculatedInverse
 
 
 # Creates a special "matrix" object that can cache its inverse.
 # Each call to makeCacheMatrix, instantiates a unique closure containing the functions 
 # set, get, setCalculatedInverse, getCalculatedInverse.
-makeCacheMatrix <- function(x = matrix()) {
+makeCacheMatrix <- function(matrix_to_cache = matrix()) {
 	# initializes the variable "calculated_inverse", clearing any old values. 
 	# calculated_inverse is local to makeCacheMatrix here.
 	calculated_inverse <- NULL
 	
-	# Subfunction setter for x.  When called, x is set to passed-in value, and the inverse is re-set to NULL.
-	set <- function(y) {
-		# Set "x" to "y" within the whole function "makeCacheMatrix", not just the set sub-function.
-		x <<- y
+	# Subfunction setter for matrix_to_cache.  When called, matrix_to_cache is set to passed-in value, 
+	# and the inverse is reset to NULL.
+	set <- function(new_matrix) {
+		# Set "matrix_to_cache" to "new_matrix" within the whole function "makeCacheMatrix", not just the set sub-function.
+		matrix_to_cache <<- new_matrix
 		# Since we have a new matrix, we can't keep the old calculated_inverse.
 		# We must re-set it to NULL to flag it for re-calculating.
 		calculated_inverse <<- NULL
 	}
 	
-	# Sub-function getter for x.
-	# Return the current value of x in the environment (lexical scope) of when the function was defined
+	# Sub-function getter for matrix_to_cache.
+	# Return the current value of matrix_to_cache in the environment (lexical scope) of when the function was defined.
 	get <- function() { 
-		return(x)
+		return(matrix_to_cache)
 	}
 	
 	# Sub-function setter for the inverse.  Outside functions, s.a. cacheSolve, call it and ask it to 
@@ -60,8 +67,8 @@ makeCacheMatrix <- function(x = matrix()) {
 # then retrieves the inverse from the cache without re-doing the costly calculation.
 # Otherwise, performs the calculation, and sets the cache to hold the result for future requests.
 # Assumption: my_matrix is a square invertible matrix.
-cacheSolve <- function(x, ...) {
-	my_inverse <- x$getCalculatedInverse()
+cacheSolve <- function(matrix_to_invert, ...) {
+	my_inverse <- matrix_to_invert$getCalculatedInverse()
 	
 	if (!is.null(my_inverse)) {
 		message("cacheSolve: Getting cached data.")
@@ -69,12 +76,12 @@ cacheSolve <- function(x, ...) {
 	}
 	
 	message("cacheSolve: No cached data. Performing new calculations.")
-	saved_matrix <- x$get()
+	saved_matrix <- matrix_to_invert$get()
 	
 	my_inverse <- solve(saved_matrix)
 	
 	message("cacheSolve: Setting calculation result into cached data.")
-	x$setCalculatedInverse(my_inverse)
+	matrix_to_invert$setCalculatedInverse(my_inverse)
 
 	return(my_inverse)
 }
